@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 import argparse
 import json
+from time import perf_counter
 
 def main(input):
     
@@ -33,8 +34,12 @@ def main(input):
        
     # Assuming that document sis not an empty array, insert all of its data into the current collection
     if documents:
+        start_time = perf_counter()
         result = collection.insert_many(documents) 
+        end_time = perf_counter()
+        duration = end_time - start_time
         print(f"inserted {len(result.inserted_ids)} documents into collection")
+        print(f"ingestion took {duration:.4f} seconds")
     else:
         print("No valid data found in file")
         
