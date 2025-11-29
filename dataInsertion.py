@@ -51,3 +51,54 @@ def main(input):
 if __name__ == "__main__":
     paths = os.listdir(".\\cleanData")
     main(paths);
+
+""" 
+Pseudocode:
+
+BEGIN PROGRAM
+
+1. DEFINE FUNCTION main(input_files):
+
+   // Step 1: Connect to MongoDB
+   connect to MongoDB at "mongodb://localhost:27017"
+   select database "YoutubeData"
+   select collection "Video"
+
+   // Step 2: Reset collection
+   delete all documents from "Video" collection
+
+   // Step 3: Process each input file
+   FOR each filename in input_files:
+       build full path = current working directory + "\cleanData\" + filename
+       create empty list 'documents'
+
+       OPEN file at full path
+       FOR each line in file:
+           trim whitespace
+           IF line is not empty:
+               TRY
+                   parse line as JSON
+                   append parsed object to 'documents'
+               CATCH JSON error:
+                   print "skipping line due to JSON error"
+
+   // Step 4: Insert into MongoDB
+   IF 'documents' list is not empty:
+       record start time
+       insert all documents into collection
+       record end time
+       calculate duration = end - start
+       print "inserted N documents"
+       print "ingestion took X seconds"
+   ELSE:
+       print "No valid data found in file"
+
+   // Step 5: Verify ingestion
+   count = number of documents in collection
+   print "There are count documents in the video collection"
+
+2. MAIN EXECUTION:
+   list all files in ".\cleanData" directory
+   call main(list_of_files)
+
+END PROGRAM """
