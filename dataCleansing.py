@@ -1,7 +1,7 @@
 # Creates a cleaned up and smaller subset for testing in a json file. maxRows allows users to set a limit on how many lines to put into the output file. (Cleansing/Transformation)
 import csv
 import json
-import argparse
+import os
 
 def cleanRow(row):
     if len(row) < 9: # Clean out empty/incomplete rows
@@ -32,13 +32,13 @@ def processRows(inp, outp, maxRows=None): # maxRows provides a max amount to par
                 out.write(json.dumps(clean) + '\n') 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Clean and convert TSV YouTube dataset to JSONL")
-    parser.add_argument("inp")
-    parser.add_argument("outp")
-    parser.add_argument("--max", type=int, default=None)
-    args = parser.parse_args()
-
-    processRows(args.inp, args.outp, args.max) # put clean rows into output file
+    contents = os.listdir(".\\allData")
+    print(contents)
+    for item in contents:
+        inputPath = os.getcwd() + "\\allData\\" + item + "\\" + item + "\\" + "3.txt"
+        outputPath = os.getcwd() + "\\cleanData\\" + item + ".json";
+        print(inputPath);
+        processRows(inputPath,outputPath)
 
 
 """ 

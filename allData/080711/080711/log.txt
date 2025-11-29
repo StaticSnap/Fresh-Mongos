@@ -1,0 +1,14 @@
+BFS crawl
+
+video ID, uploader, age, category, length, views, rate, ratings, comments, related ID
+
+start:  080711 18:39:47
+finish: 080712 0:10:20
+
+depth	video	time
+0	191	58
+1	1799	548
+2	9979	3049
+3	53443	16178
+total	65412	19833
+last	266878
