@@ -157,3 +157,116 @@ elif current_page == "Scalable Analytics":
             st.dataframe(df_related[['videoID', 'uploader', 'category']])
         else:
             st.warning(f"No videos found that list {target_id} as related.")
+
+""" 
+Pseudocode:
+
+BEGIN PROGRAM
+
+1. CONNECT TO DATABASE
+   FUNCTION connect_to_database():
+       TRY
+           connect to MongoDB at localhost:27017
+           run ping command to verify connection
+           RETURN database client
+       CATCH error
+           show error message in UI
+           RETURN null
+
+   mongo_client = connect_to_database()
+
+   IF mongo_client is null:
+       stop program
+   ELSE:
+       db = mongo_client["YoutubeData"]
+       video_collection = db["Video"]
+
+2. SETUP USER INTERFACE
+   configure page with title "YouTube Data Analytics"
+   show main title "YouTube Data Engine (Milestone 4)"
+
+   sidebar menu:
+       options = ["Dashboard & Charts", "Search Videos", "Scalable Analytics"]
+       current_page = user selection
+
+3. DASHBOARD & CHARTS MODULE
+   IF current_page == "Dashboard & Charts":
+       show header "Data Dashboard"
+
+       // Metric: total videos
+       total_videos = count all documents in video_collection
+       display metric "Total Videos Loaded" = total_videos
+
+       // Chart 1: Category Counts
+       run aggregation pipeline:
+           group by category, count videos
+           sort by count descending
+           limit to top 10
+       category_data = results
+
+       IF category_data not empty:
+           convert to table (Category, Count)
+           show bar chart of counts per category
+       ELSE:
+           show warning "No data found"
+
+       // Chart 2: Views vs Rating Scatter Plot
+       show subheader "Views vs Rating"
+       explain correlation plot
+
+       sample_records = fetch up to 1000 documents with fields (views, rating, category)
+       IF sample_records not empty:
+           convert to table
+           plot scatter chart: x=rating, y=views
+           show chart
+
+4. SEARCH VIDEOS MODULE
+   ELSE IF current_page == "Search Videos":
+       show header "Interactive Search"
+
+       search_criteria = user chooses ["Video ID", "Uploader Name"]
+
+       IF search_criteria == "Video ID":
+           video_id_input = user text input
+           IF user clicks "Search Video":
+               record_result = find one document where videoID = input
+               IF record_result exists:
+                   show success message
+                   prepare table with metrics:
+                       uploader, category, duration, views, rating, related count
+                   display table
+                   expandable section: show list of related video IDs
+               ELSE:
+                   show error "Video ID not found"
+
+       ELSE IF search_criteria == "Uploader Name":
+           uploader_input = user text input
+           IF user clicks "Search Uploader":
+               uploader_results = find up to 5 documents where uploader = input
+               IF results exist:
+                   show message "Found N videos"
+                   FOR each video in results:
+                       expandable section with:
+                           category + videoID
+                           views, rating, related videos
+               ELSE:
+                   show error "Uploader not found"
+
+5. SCALABLE ANALYTICS MODULE
+   ELSE IF current_page == "Scalable Analytics":
+       show header "Scalable Data Processing"
+       show info message about MapReduce-like query
+
+       show subheader "Reverse Related Search"
+       target_id = user text input (default example ID)
+
+       IF user clicks "Run Reverse Index Check":
+           pointing_to_me = find all documents where 'related' array contains target_id
+           IF results exist:
+               show message "Found N videos that recommend target_id"
+               convert results to table with columns (videoID, uploader, category)
+               display table
+           ELSE:
+               show warning "No videos found that list target_id"
+
+END PROGRAM """
