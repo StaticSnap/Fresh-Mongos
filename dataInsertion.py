@@ -2,6 +2,7 @@ from pymongo import MongoClient
 import argparse
 import json
 import os
+from time import perf_counter
 
 def main(input):
     
@@ -31,12 +32,16 @@ def main(input):
                     except json.JSONDecodeError as e:
                         print(f"skipping line due to JSON error: {e}")
        
-        # Assuming that documents is not an empty array, insert all of its data into the current collection
-        if documents:
-            result = collection.insert_many(documents) 
-            print(f"inserted {len(result.inserted_ids)} documents into collection")
-        else:
-            print("No valid data found in file")
+    # Assuming that document sis not an empty array, insert all of its data into the current collection
+    if documents:
+        start_time = perf_counter()
+        result = collection.insert_many(documents) 
+        end_time = perf_counter()
+        duration = end_time - start_time
+        print(f"inserted {len(result.inserted_ids)} documents into collection")
+        print(f"ingestion took {duration:.4f} seconds")
+    else:
+        print("No valid data found in file")
         
     
     # This line ensures that the data has been properly added to the collection by querying
