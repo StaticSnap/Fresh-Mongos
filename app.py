@@ -2,6 +2,7 @@ import streamlit as st
 from pymongo import MongoClient
 import pandas as pd
 import matplotlib.pyplot as plt
+from time import perf_counter;
 
 # 1. DATABASE CONNECTION AND SETUP
 # Connects to the database and keeps the connection open.
@@ -28,15 +29,15 @@ else:
 
 # 2. UI SETUP AND NAVIGATION
 st.set_page_config(page_title="YouTube Data Analytics", layout="wide")
-st.title("📺 YouTube Data Engine (Milestone 4)")
+st.title("YouTube Data Engine")
 
 # Sets up the main menu in the sidebar.
 st.sidebar.header("Menu")
-current_page = st.sidebar.radio("Select View:", ["Dashboard & Charts", "Search Videos", "Scalable Analytics"])
+current_page = st.sidebar.radio("Select View:", ["Dashboard & Charts", "Search Videos", "Analytics"])
 
 # 3. DASHBOARD MODULE (Data Visualization)
 if current_page == "Dashboard & Charts":
-    st.header("📊 Data Dashboard")
+    st.header("Data Dashboard")
     
     # Quick Metric: Total video count
     total_videos = video_collection.count_documents({})
@@ -44,7 +45,7 @@ if current_page == "Dashboard & Charts":
 
     # Chart 1: Category Counts
     st.subheader("Distribution by Category")
-    
+    start_time = perf_counter()
     # MongoDB aggregation to count videos per category.
     count_pipeline = [
         {"$group": {"_id": "$category", "count": {"$sum": 1}}},
@@ -52,7 +53,8 @@ if current_page == "Dashboard & Charts":
         {"$limit": 10}
     ]
     category_data = list(video_collection.aggregate(count_pipeline))
-    
+    end_time = perf_counter()
+    time = end_time - start_time
     if category_data:
         df_categories = pd.DataFrame(category_data)
         df_categories.rename(columns={"_id": "Category", "count": "Count"}, inplace=True)
@@ -61,13 +63,14 @@ if current_page == "Dashboard & Charts":
         st.bar_chart(df_categories.set_index("Category"))
     else:
         st.warning("No data found in MongoDB.")
-
+    st.write(f"time taken: {time}")
     # Chart 2: Views vs Rating Scatter Plot
     st.subheader("Views vs. Rating")
     st.write("Correlation between rating and view count (Uses a 1000-record sample)")
     
     # Fetches a random sample for fast plotting.
     sample_records = list(video_collection.find({}, {"views": 1, "rating": 1, "category": 1, "_id": 0}).limit(1000))
+    
     if sample_records:
         df_scatter = pd.DataFrame(sample_records)
         
@@ -77,11 +80,10 @@ if current_page == "Dashboard & Charts":
         ax.set_xlabel("Rating")
         ax.set_ylabel("Views")
         st.pyplot(fig)
-
         
 # 4. SEARCH MODULE (Interactive Query)
 elif current_page == "Search Videos":
-    st.header("🔍 Interactive Search")
+    st.header("Interactive Search")
     
     # Radio button for selecting search criteria.
     search_criteria = st.radio("Search by:", ["Video ID", "Uploader Name"])
@@ -89,12 +91,14 @@ elif current_page == "Search Videos":
     if search_criteria == "Video ID":
         video_id_input = st.text_input("Enter Video ID (e.g., yZIkFwxLUeU)")
         if st.button("Search Video"):
+            start_time = perf_counter();
             # Queries MongoDB for a single video record.
             record_result = video_collection.find_one({"videoID": video_id_input.strip()})
-            
+            end_time = perf_counter();
+            time = end_time - start_time;
             if record_result:
                 st.success(f"Record Found: {record_result.get('videoID')}")
-                
+                st.success(f"Time taken: {time}")
                 # Prepares data for a clean table display.
                 display_data = {
                     "Metric": ["Uploader", "Category", "Duration (sec)", "Views", "Rating", "Related Videos Count"],
@@ -122,11 +126,14 @@ elif current_page == "Search Videos":
     elif search_criteria == "Uploader Name":
         uploader_input = st.text_input("Enter Uploader Name")
         if st.button("Search Uploader"):
+            start_time = perf_counter();
             # Queries MongoDB for multiple videos by the uploader (limited to 5).
             uploader_results = list(video_collection.find({"uploader": uploader_input.strip()}).limit(5))
+            end_time = perf_counter();
+            time = end_time-start_time;
             if uploader_results:
                 st.write(f"Found {len(uploader_results)} videos (showing top 5):")
-                
+                st.write(f"Time taken: {time}");
                 # Iterates and displays results in expandable sections.
                 for video in uploader_results:
                     with st.expander(f"{video.get('category')} - {video.get('videoID')}"):
@@ -137,9 +144,9 @@ elif current_page == "Search Videos":
                 st.error("Uploader not found.")
 
 # 5. SPARK ANALYTICS MODULE (Scalable Processing)
-elif current_page == "Scalable Analytics":
-    st.header("⚡ Scalable Data Processing")
-    st.info("This section queries the database based on results that would typically come from a MapReduce job.")
+elif current_page == "Analytics":
+    st.header("Data Processing")
+    st.info("This section queries the database using a spark map/reduce job")
     
     st.subheader("Algorithm: Reverse Related Search")
     target_id = st.text_input("Enter Target Video ID to find videos that reference it", "yZIkFwxLUeU")
@@ -147,8 +154,10 @@ elif current_page == "Scalable Analytics":
     if st.button("Run Reverse Index Check"):
         # Queries Mongo using the 'related' array index. This mimics the core MapReduce logic 
         # (finding all records that point to a specific key).
+        start_time = perf_counter();
         pointing_to_me = list(video_collection.find({"related": target_id}))
-        
+        end_time = perf_counter();
+        time = end_time-start_time;
         if pointing_to_me:
             st.write(f"Found {len(pointing_to_me)} videos that recommend **{target_id}**:")
             
@@ -157,6 +166,9 @@ elif current_page == "Scalable Analytics":
             st.dataframe(df_related[['videoID', 'uploader', 'category']])
         else:
             st.warning(f"No videos found that list {target_id} as related.")
+        st.write(f"time taken: {time}")
+
+
 
 """ 
 Pseudocode:
